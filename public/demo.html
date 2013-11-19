@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Image process demo -- Composite</title>
+<link href='css/smoothness/jquery-ui-1.8.13.custom.css' type='text/css' rel='stylesheet' />
+<link href='css/style.css' type='text/css' rel='stylesheet' />
+<script src="js/libs/jquery.js"></script>
+<script src="js/libs/jquery-ui-1.8.13.custom.min.js"></script>
+<script src="js/api.js"></script>
+
+<script>
+var settings = {
+	'types': ['image/gif', 'image/png', 'image/jpeg'],
+	'mime': {'jpe': 'image/jpeg', 'jpeg': 'image/jpeg', 'jpg': 'image/jpeg', 'gif': 'image/gif', 'png': 'image/png', 'x-png': 'image/png', 'tif': 'image/tiff', 'tiff': 'image/tiff'}
+};
+
+var compositeOps = [
+	"source-over", "source-in", "source-out", "source-atop",
+	"destination-in",  "destination-out", "destination-atop",
+	"xor", "copy", "lighter", "darker",
+	"multiply", "screen", "overlay", "hard-light",
+	"hsl-hue", "hsl-saturation", "hsl-saturation", "hsl-color", "hsl-luminosity"
+];
+
+function getImageBase64Stream(id) {
+	var items = [];
+	$("#" + id).each(function (index) {
+		var backgroundImg = $(this).css("background-image");
+		var match = /url\s*\((.*)\)/.exec(backgroundImg);
+		if (match) {
+			console.log(match[1]);
+			items.push(match[1]);
+		}
+	});
+	return items;
+}
+
+function composite(img1, img2, operation, callback) {
+	var api = NodeCanvas.Client.instance();
+	api.compositeOperation(img1, img2, operation, callback);
+}
+
+$(document).ready(function() {
+	$("button").button();
+
+	// Handle file input change event
+	$("#fileInputImg").bind('change', function (event) {
+     	if(window.FileReader){
+     		for(var i = 0; i < this.files.length; i++){
+		 		if(!$.inArray(this.files[i].type, settings['types']) == -1){
+		 			window.alert("File of not allowed type");
+		 			return false
+		 		}
+		 	}
+
+     	    for(var i = 0; i < this.files.length; i++){
+     	    	var reader = new FileReader();
+	    		reader.onload = function (e) {
+	    			$('#divImgPreview').css({'background-image': ('url('+ e.target.result + ')') });
+	    		};
+	    		reader.readAsDataURL(this.files[i]);
+     	    }
+     	}else{
+     		if(window.confirm('Internet Explorer do not support required HTML5 features. \nPleas, download better browser - Firefox, Google Chrome, Opera... \nDo you want to download and install Google Chrome now?')) {
+     			window.location("//google.com/chrome");
+     		}
+     	}
+	});
+
+	// Handle button click event
+	$("#btnBlend").on("click", function (event) {
+		var img1;
+		var inputFile1 = getImageBase64Stream("divImgPreview");
+		if (inputFile1 && inputFile1.length > 0) {
+			img1 = inputFile1[0];
+		}
+
+		var img2;
+		var inputFile2 = getImageBase64Stream("divImgResult");
+		if (inputFile2 && inputFile2.length > 0) {
+			img2 = inputFile2[0];
+		}
+
+		var op = $("#selInputMode").val();
+
+		// Do composite when there are two image, else, just copy the first image to result
+		if (img1 && img2) {
+			composite(img1, img2, op, function (result) {
+				$("#divImgResult").css({'background-image': ('url(' + result.data +')')});
+			});
+		} else {
+			$("#divImgResult").css({'background-image': ('url(' + img1 +')')});
+		}
+	});
+});
+
+</script>
+</head>
+
+<body>
+	<h1>Image process demo -- Composite</h1>
+	<br/>
+	<table id="tblComposite" rules='all' border="1">
+	<tr>
+		<td>
+			<table id="tblInputControls">
+			<tr>
+				<td id="tdInputImg">
+					<input class="file" id="fileInputImg" type='file' title="Image"/>
+				</td>
+				<td id="tdInputMode">
+	                <table>
+                	<tr>
+                		<td>Mode</td>
+                		<td>
+	                		<select name='Mode' id='selInputMode'>
+			                    <option value='multiply'>multiply</option>
+			                    <option value='screen'>screen</option>
+			                    <option value='overlay'>overlay</option>
+			                    <option value='hard-light'>hard-light</option>
+			                    <option value='hsl-hue'>hsl-hue</option>
+			                    <option value='hsl-saturation'>hsl-saturation</option>
+			                    <option value='hsl-colo'>hsl-colo</option>
+			                    <option value='hsl-luminosity'>hsl-luminosity</option>
+			                </select>
+		                </td>
+                	</tr>
+	                </table>
+                </td>
+				<td id="tdBtnBlend">
+					<button type="button" id="btnBlend">Blend</button>
+				</td>
+			</tr>
+			</table>
+		</td>
+		<td>
+			<b>Result</b>
+		</td>
+	</tr>
+	<tr>
+		<td>
+			<div id="divImgPreview" class="ImgPreview">
+			</div>
+		</td>
+		<td>
+			<div id="divImgResult" class="ImgPreview">
+			</div>
+		</td>
+	</tr>
+	</table>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href='css/smoothness/jquery-ui-1.8.13.custom.css' type='text/css' rel='stylesheet' />
+<script src="js/libs/jquery.js"></script>
+<script src="js/libs/jquery.preimage.js"></script>
+<script src="js/libs/jquery-ui-1.8.13.custom.min.js"></script>
+<script src="js/api.js"></script>
+
+<script>
+var compositeOps = [
+	"source-over", "source-in", "source-out", "source-atop",
+	"destination-in",  "destination-out", "destination-atop",
+	"xor", "copy", "lighter", "darker",
+	"multiply", "screen", "overlay", "hard-light",
+	"hsl-hue", "hsl-saturation", "hsl-saturation", "hsl-color", "hsl-luminosity"
+];
+
+function generateTblRowForCompositeOps(index) {
+	var tdForCompositeOps = function (index) {
+		var compositeOp = compositeOps[index];
+		var id = "compositeBtn" + "_" + index;
+		var innerHtml = "<input type=\"checkbox\" id=\"" + id + "\" checked='checked'/>" +
+		"<label for=\"" + id + "\">" + compositeOp + "</label>";
+		var htmlStr = "<td>" + innerHtml + "</td>";
+		return htmlStr;
+	};
+
+	var tdForCompositeResultImg = function (index) {
+		var id = "compositeResultImg_" + index;
+		var innerHtml = "<div id=\"" + id + "\"></div>";
+		var htmlStr = "<td>" + innerHtml + "</td>";
+		return htmlStr;
+	};
+
+	var trHtmlStr = "<tr>" + tdForCompositeOps(index) + tdForCompositeResultImg(index) + "</tr>";
+	return trHtmlStr;
+}
+
+function initTbls(callback) {
+	for (var i = 0; i < compositeOps.length; ++i) {
+		var trHtml = generateTblRowForCompositeOps(i);
+		$("#compositeOpsTbl").append(trHtml);
+		$("#compositeBtn" + "_" + i).button();
+		$("#compositeBtn" + "_" + i).on("click", { value: i }, function (event) {
+			var img1;
+			var inputFile1 = getImageBase64Stream("prev_file1");
+			if (inputFile1 && inputFile1.length > 0) {
+				img1 = inputFile1[0];
+			}
+
+			var img2;
+			var inputFile2 = getImageBase64Stream("prev_file2");
+			if (inputFile2 && inputFile2.length > 0) {
+				img2 = inputFile2[0];
+			}
+
+			var index = event.data.value;
+			var op = compositeOps[index];
+
+			if (img1 && img2) {
+				composite(img1, img2, op, function (result) {
+					$("#compositeBtn" + "_" + index).button( "option", "disabled", true);
+					callback(index, result);
+				})
+			}
+		});
+	}
+}
+
+function getImageBase64Stream(id) {
+	var items = [];
+	$("#" + id).find(".prev_thumb").each(function (index) {
+		var backgroundImg = $(this).css("background-image");
+		var match = /url\s*\((.*)\)/.exec(backgroundImg);
+		if (match) {
+			console.log(match[1]);
+			items.push(match[1]);
+		}
+	});
+	return items;
+}
+
+function composite(img1, img2, operation, callback) {
+	var api = NodeCanvas.Client.instance();
+	api.compositeOperation(img1, img2, operation, callback);
+}
+
+$(document).ready(function()
+{
+	$('.file').preimage();
+	initTbls(function (index, result) {
+		$("#compositeResultImg" + "_" + index).css(
+			{
+				'background-image': ('url(' + result.data +')'),
+			 	'background-repeat': 'no-repeat',
+			 	"background-size": "contain",
+			 	"width": '400px',
+			 	"height": '300px'
+			}
+		);
+	});
+});
+
+</script>
+<style>
+.prev_container{
+	overflow: auto;
+	width: 300px;
+	height: 135px;
+}
+
+.prev_thumb{
+	margin: 10px;
+	height: 100px;
+}
+</style>
+<meta charset=utf-8 />
+<title>jQuery file upload</title>
+</head>
+<body>
+	<h1>Image process demo -- Composite</h1>
+	<br/>
+	<table style='padding=0px;margin:0px' rules='all' border="1">
+	<tr>
+		<td>
+			<table id="inputImgTbl">
+			<tr>
+				<td>
+					<input class="file" id="file1" type='file' title="Image #1"/>
+					<div id="prev_file1"></div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					<input class="file" id="file2" type='file' title="Image #2"/>
+					<div id="prev_file2"></div>
+				</td>
+			</tr>
+			</table>
+		</td>
+		<td valign="top">
+			<table id="compositeOpsTbl" align="middle" style="height:100%;width:100%;padding=0px;margin:0px" rules='all'>
+				<thead>
+					<td style="width: 200px">
+						<div>Composite operation</div>
+					</td>
+					<td style="width: 300px">
+						<div>Result image</div>
+					</td>
+				</thead>
+			</table>
+		</td>
+	</tr>
+	</table>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{
+    "name": "node-canvas-exercise",
+    "description": "test node-canvas.",
+    "version": "0.1.0",
+    "main": "main.js",
+        "engines": {
+        "node": ">= 0.8.0"
+    },
+    "dependencies": {
+        "canvas": "latest",
+        "express": "3.0",
+        "jade": "0.28.1",
+        "mocha": "*",
+        "should": "*"
+    },
+    "devDependencies": {
+        "canvas": "latest",
+        "express": "3.0",
+        "jade": "0.28.1",
+        "mocha": "*",
+        "should": "*"
+    }
+}

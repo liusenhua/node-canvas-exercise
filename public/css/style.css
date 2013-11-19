@@ -1,0 +1,43 @@
+html
+{
+    width: 100%;
+    height: 100%;
+
+    margin: 0px;
+    padding: 0px;
+
+    border: none;
+    overflow:hidden;
+}
+
+body
+{
+    width: 100%;
+    height: 100%;
+
+    margin: 0px;
+    padding: 0px;
+
+    border: none;
+    overflow:hidden;
+}
+
+#tblComposite {
+    padding: 0px;
+    margin: 0px
+}
+
+#tdInputImg {
+    width:150px;
+}
+
+#tdBtnBlend {
+    width:40px;
+}
+
+.ImgPreview {
+    width: 600px;
+    height: 400px;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
